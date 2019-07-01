@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>注册</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/a3common.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/font_43459_lbtux0zjkr6yldi.css">
+    <link rel="stylesheet" href="/css/register.css">
+</head>
+<body>
+
+<div id="main" class="main-warp">
+    <div class="main-content">
+        <div class="formDiv">
+
+            <h2 class="title text-center">注册</h2>
+
+
+
+            <div class="switch">
+                <a id="switch" current="normal" href="javascript:;" class="link">
+                </a>
+            </div>
+
+            <form id="registerForm" role="form" class="form-horizontal " action="/user/register" method="post">
+                <div class="form-item">
+                    <div class="input-warp">
+                        <span class="input-icon iconfont icon-yonghu1"></span><input id="userName" name="username" placeholder="用户名" type="text" class="inputs" value=""/>
+                    </div>
+                    <p id="userNameErr" class="errMsg">&nbsp;</p>
+                </div>
+
+                <div class="form-item">
+                    <div class="input-warp">
+                        <span class="input-icon iconfont icon-baomi"></span>
+                        <input id="pwd" type="password" placeholder="密码" maxlength="20" name="password" value=""
+                               class="inputs"/>
+                    </div>
+                    <p id="passwordErr" class="errMsg">&nbsp;</p>
+                </div>
+                <div class="form-item">
+                    <div class="input-warp">
+                        <span class="input-icon iconfont icon-youxiangbangding"></span><input id="email" name="email" placeholder="邮箱地址" type="text" class="inputs" value=""/>
+                    </div>
+                    <p id="emailErr" class="errMsg">&nbsp;</p>
+                </div>
+
+                <div class="form-item">
+                    <div class="input-warp s">
+                        <span class="input-icon iconfont icon-yanzhengma"></span>
+                        <input id="kaptcha" name="kaptcha" placeholder="验证码" type="text" class="inputs" value=""/>
+                        <div id="popup-captcha" style="display: none"></div>
+                    </div>
+                    <div class="pull-right">
+                        <button id="btnSendCode" class="btn lgbtn blue">获取验证码</button>
+                    </div>
+                    <p id="kaptchaErr" class="errMsg">&nbsp;</p>
+                </div>
+
+                <div class="btn-warp">
+                    <div class="text-center">
+                        <button type="submit" id="btnSubmit"  class="btn lgbtn blue btn-block">注册</button>
+                        <input id="appName" name="appName" type="hidden" value="jsform"/>
+                    </div>
+                </div>
+                <div class="agreement gap">
+                    <div class="text-right">
+                        <div class="pull-left">已有账号，<a href="http://localhost:8080/user/toLogin" class="link">登录</a></div><p>注册即代表您已阅读并同意《<a href="javascript:;" target="_blank" class="link">使用协议</a>》</p>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<script src="\js\jquery-1.8.2.js"></script>
+<script>
+    $(function () {
+
+        // 发送验证码
+        $("#btnSendCode").click(function () {
+            var email = $("#email").val();
+            // 判断邮箱是否为空
+            if (email == "") {
+                $("#emailErr").html("邮箱不能为空");
+                return;
+            }
+            $("#emailErr").html("&nbsp;");
+            // 判断邮箱格式是否正确
+            var reg = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+            if (!reg.test(email)) {
+                $("#emailErr").html("邮箱格式不对");
+                return;
+            }
+            // 邮箱格式正确才能请求后台
+            $.post(
+                "/user/toEmail",
+                {"toEmail":email},
+                function (data) {
+                    if (data) {
+                        $("#btnSendCode").html("发送成功");
+                    }else {
+                        $("#btnSendCode").html("发送失败");
+                    }
+                }
+            );
+        })
+
+        // 判断验证码是否正确
+        $("#kaptcha").blur(function () {
+            var code = $(this).val();
+            if (code == "") {
+                $("#kaptchaErr").html("验证码不能为空");
+            }else {
+                $.post(
+                    "/user/checkCode",
+                    {"code":code},
+                    function (data) {
+                        if (data) {
+                            $("#kaptchaErr").html("&nbsp;");
+                        }else {
+                            $("#kaptchaErr").html("验证码错误");
+                        }
+                    },"json"
+                );
+            }
+        })
+
+        // 判断用户名是否可用
+        $("#userName").blur(function () {
+            var username = $(this).val();
+            if (username == "") {
+                $("#userNameErr").html("用户名不能为空");
+                return;
+            }
+            $.post(
+                "/user/getUserByUsername",
+                {"username":username},
+                function (data) {
+                    if (data) {
+                        $("#userNameErr").html("&nbsp;");
+                    }else {
+                        $("#userNameErr").html("该用户已存在");
+                    }
+                },"json"
+            )
+        })
+
+        // 判断密码是否为空
+        $("#pwd").blur(function () {
+            var password = $(this).val();
+            if (password == "") {
+                $("#passwordErr").html("密码不能为空");
+            } else {
+                $("#passwordErr").html("&nbsp;");
+            }
+        })
+
+        // 判断表单是否全部填写正确
+        $("#registerForm").submit(function () {
+            var username = $("#userName").val();
+            var password = $("#pwd").val();
+            var email = $("#email").val();
+            var code = $("#kaptcha").val();
+            // 如果用户已存在或验证码错误也不能提交
+            if (username == "" || $("#userNameErr").text() == "该用户已存在") {
+                return false;
+            } else if (password == "") {
+                return false;
+            }else if (email == "") {
+                return false;
+            }else if (code == "" || $("#kaptchaErr").text() == "验证码错误") {
+                return false;
+            }
+            return true;
+        })
+
+    })
+</script>
+
+</body>
+</html>

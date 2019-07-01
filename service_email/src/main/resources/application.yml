@@ -1,0 +1,20 @@
+server:
+  port: 9090
+dubbo:
+  application:
+    name: service_email
+  registry:
+    address: zookeeper://192.168.245.199:2181
+  protocol:
+    port: -1
+  consumer:
+    check: false
+    timeout: 10000
+    retries: 3
+spring:
+  mail:
+    protocol: smtp
+    host: smtp.163.com
+    username: 18770020835@163.com
+    #授权密码
+    password: Lonely085

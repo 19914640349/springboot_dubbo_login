@@ -1,0 +1,14 @@
+server:
+  port: 8081
+spring:
+  thymeleaf:
+    cache: false
+dubbo:
+  application:
+    name: web_register
+  consumer:
+    check: false
+    timeout: 10000
+    retries: 3
+  registry:
+    address: zookeeper://192.168.245.199:2181
